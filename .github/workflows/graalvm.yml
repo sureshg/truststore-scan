@@ -1,0 +1,169 @@
+name: GraalVM Native Image
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+    paths-ignore:
+      - LICENSE
+      - '*.md'
+      - 'docs/**'
+      - '.github/config/labels.yml'
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  releaseBuild: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
+
+jobs:
+  native-build:
+    name: ${{ matrix.distribution }} ${{ matrix.java-version }} latest on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        java-version: [ 'dev' ]
+        distribution: [ 'graalvm-community' ]
+        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13, windows-latest ]
+
+    outputs:
+      version: ${{ steps.native-build.outputs.version }}
+      native_image_name: ${{ steps.native-build.outputs.native_image_name }}
+      native_image_dashboard: ${{ steps.native-build.outputs.native_image_dashboard }}
+
+    steps:
+      - name: 🛎️ Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Setup GraalVM CE Dev Build
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: ${{ matrix.distribution }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: 'gradle'
+          set-java-home: 'true'
+          native-image-job-reports: 'false'
+
+      - name: 🏗️ Native Image Build & Test
+        id: native-build
+        run: |
+          ./gradlew nativeCompile -Pquick
+          ls -ltrh build/${{ github.event.repository.name }}*.tar.gz
+
+      - name: 📤 Upload ${{ matrix.os }} native image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.native-build.outputs.native_image_name }}
+          path: |
+            build/${{ steps.native-build.outputs.native_image_name }}
+          if-no-files-found: error
+
+      - name: 📈 Upload ${{ matrix.os }} native image dashboard
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.native-build.outputs.native_image_dashboard }}
+          path: |
+            build/${{ steps.native-build.outputs.native_image_dashboard }}
+          if-no-files-found: ignore
+
+
+  native-build-musl:
+    name: GraalVM Community Dev + musl static image
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.native-build.outputs.version }}
+      native_image_name: ${{ steps.native-build.outputs.native_image_name }}
+      native_image_dashboard: ${{ steps.native-build.outputs.native_image_dashboard }}
+
+    steps:
+      - name: 🛎️ Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Setup GraalVM CE Dev Build
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: 'dev'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: 'gradle'
+          native-image-musl: 'true'
+          set-java-home: 'true'
+          native-image-job-reports: 'false'
+
+      - name: 🏗️ Build static image with musl libc
+        id: native-build
+        run: |
+          ./gradlew nativeCompile -Pquick -Pmusl
+          ls -ltrh build/${{ github.event.repository.name }}*.tar.gz
+
+      - name: 📤 Upload static binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.native-build.outputs.native_image_name }}
+          path: |
+            build/${{ steps.native-build.outputs.native_image_name }}
+          if-no-files-found: error
+
+  release:
+    name: 🚰 Release new version.
+    needs: [ native-build, native-build-musl ]
+    if: startsWith(github.ref, 'refs/tags/') && needs.native-build.result == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛎️Check out the source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: ⚙️Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          configuration: ".github/config/configuration.json"
+          commitMode: true
+          ignorePreReleases: ${{ !contains(github.ref, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⏬Download all the build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: ✨Github Release (version = ${{ needs.native-build.outputs.version }})
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.github_release.outputs.changelog }}
+          files: |
+            ${{ github.workspace }}/release-artifacts/**
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,30 @@
+# Mac OSX
+.DS_Store
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Gradle
+.gradle
+build
+reports
+!gradle-wrapper.jar
+
+# Java
+hs_err_pid*
+classes.lst
+*.jsa
+jre/
+*.build_artifacts.txt
+
+# Kotlin
+**/.kotlin
+
+# Gradle release
+cx.json
+
+# Misc
+nohup.out
+/.fleet/settings.json
