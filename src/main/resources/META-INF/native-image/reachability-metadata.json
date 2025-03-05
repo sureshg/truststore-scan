@@ -1,6 +1,15 @@
 {
   "reflection": [
     {
+      "type": "apple.security.AppleProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "com.github.marschall.directorykeystore.DirectoryKeystore",
       "methods": [
         {
@@ -157,18 +166,6 @@
       ]
     },
     {
-      "type": "sun.security.x509.NameConstraintsExtension",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": [
-            "java.lang.Boolean",
-            "java.lang.Object"
-          ]
-        }
-      ]
-    },
-    {
       "type": "sun.security.x509.NetscapeCertTypeExtension",
       "methods": [
         {
@@ -219,21 +216,12 @@
   ],
   "resources": [
     {
-      "glob": "META-INF/services/java.time.zone.ZoneRulesProvider"
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "module": "java.base",
+      "glob": "jdk/internal/icu/impl/data/icudt74b/nfc.nrm"
     }
   ],
-  "bundles": [],
-  "jni": [
-    {
-      "type": "java.lang.Boolean",
-      "methods": [
-        {
-          "name": "getBoolean",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    }
-  ]
+  "bundles": []
 }

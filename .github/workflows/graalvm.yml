@@ -107,7 +107,7 @@ jobs:
       - name: ☕ Setup GraalVM CE Dev Build
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: 'dev'
+          java-version: '23'
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: 'gradle'
