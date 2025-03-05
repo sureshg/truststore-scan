@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        java-version: [ 'dev' ]
+        java-version: [ '23' ]
         distribution: [ 'graalvm-community' ]
         os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13, windows-latest ]
 

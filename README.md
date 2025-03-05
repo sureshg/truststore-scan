@@ -5,5 +5,5 @@
 ```bash
 # Install latest GraalVM CE
 $ ./scripts/graalvm-ce-dev.sh
-$  ./gradlew nativeCompile -Pquick
+$ ./gradlew nativeCompile -Pquick
 ```
