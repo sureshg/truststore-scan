@@ -79,16 +79,6 @@ jobs:
             build/${{ steps.native-build.outputs.native_image_name }}
           if-no-files-found: error
 
-      - name: 📈 Upload ${{ matrix.os }} native image dashboard
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.native-build.outputs.native_image_dashboard }}
-          path: |
-            build/${{ steps.native-build.outputs.native_image_dashboard }}
-          if-no-files-found: ignore
-
-
   native-build-musl:
     name: GraalVM Community Dev + musl static image
     runs-on: ubuntu-latest

@@ -4,6 +4,6 @@
 
 ```bash
 # Install latest GraalVM CE
-$ ./scripts/graalvm-ce-dev.sh
+$ sdk i java 23.0.2-graalce
 $ ./gradlew nativeCompile -Pquick
 ```
