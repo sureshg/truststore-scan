@@ -41,15 +41,17 @@ jobs:
       matrix:
         java-version: [ '23' ]
         distribution: [ 'graalvm-community' ]
-        os: [ ubuntu-20.04, ubuntu-22.04-arm, macos-14, macos-13, windows-2019 ]
+        os: [ ubuntu-20.04, ubuntu-22.04-arm, macos-14, macos-13, windows-2022 ]
         build-type: [ libc, musl ]
         exclude:
-          # Exclude musl builds for non-Linux platforms
+          # Exclude musl builds for these platforms
           - os: macos-14
             build-type: musl
           - os: macos-13
             build-type: musl
-          - os: windows-2019
+          - os: windows-2022
+            build-type: musl
+          - os: ubuntu-22.04-arm
             build-type: musl
 
     outputs:
