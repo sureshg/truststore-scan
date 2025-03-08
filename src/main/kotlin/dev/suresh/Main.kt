@@ -37,5 +37,13 @@ val KeyStore.certEntries
           .mapNotNull { getCertificate(it) }
           .filterIsInstance<X509Certificate>()
 
+val KeyStore.certChainEntries
+  get() =
+      aliases()
+          .toList()
+          .filter { isCertificateEntry(it) }
+          .flatMap { getCertificateChain(it)?.toList().orEmpty() }
+          .filterIsInstance<X509Certificate>()
+
 fun KeyStore.keyEntries(password: CharArray) =
     aliases().toList().filter { isKeyEntry(it) }.mapNotNull { getKey(it, password) }

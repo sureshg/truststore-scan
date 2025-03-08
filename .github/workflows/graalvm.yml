@@ -42,7 +42,7 @@ jobs:
       matrix:
         java-version: [ '23' ]
         distribution: [ 'graalvm-community' ]
-        os: [ ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13, windows-latest ]
+        os: [ ubuntu-20.04, ubuntu-22.04-arm, macos-14, macos-13, windows-2019 ]
 
     outputs:
       version: ${{ steps.native-build.outputs.version }}
@@ -80,8 +80,14 @@ jobs:
           if-no-files-found: error
 
   native-build-musl:
-    name: GraalVM Community Dev + musl static image
-    runs-on: ubuntu-latest
+    name: Musl ${{ matrix.distribution }} ${{ matrix.java-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [ '23' ]
+        distribution: [ 'graalvm-community' ]
+        os: [ ubuntu-20.04, ubuntu-22.04-arm ]
 
     outputs:
       version: ${{ steps.native-build.outputs.version }}
@@ -97,21 +103,21 @@ jobs:
       - name: ☕ Setup GraalVM CE Dev Build
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '23'
-          distribution: 'graalvm-community'
+          java-version: ${{ matrix.java-version }}
+          distribution: ${{ matrix.distribution }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: 'gradle'
-          native-image-musl: 'true'
           set-java-home: 'true'
+          native-image-musl: 'true'
           native-image-job-reports: 'false'
 
-      - name: 🏗️ Build static image with musl libc
+      - name: 🏗️ Native Image Build & Test
         id: native-build
         run: |
           ./gradlew nativeCompile -Pquick -Pmusl
           ls -ltrh build/${{ github.event.repository.name }}*.tar.gz
 
-      - name: 📤 Upload static binary
+      - name: 📤 Upload ${{ matrix.os }} native image
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.native-build.outputs.native_image_name }}

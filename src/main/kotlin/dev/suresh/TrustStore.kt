@@ -23,9 +23,12 @@ object TrustStore {
   fun systemTrustStore(type: TrustStoreType): KeyStore =
       when (type) {
         is TrustStoreType.Directory -> {
-          Security.addProvider(DirectoryKeystoreProvider())
+          if (Security.getProvider(DirectoryKeystoreProvider.NAME) == null) {
+            Security.addProvider(DirectoryKeystoreProvider())
+          }
           KeyStore.getInstance(type.name).apply { load(DirectoryLoadStoreParameter(type.path)) }
         }
+
         else -> KeyStore.getInstance(type.name).apply { load(null, null) }
       }
 
@@ -56,5 +59,5 @@ sealed class TrustStoreType(val name: String) {
 
   data object MACOS_SYSTEM : TrustStoreType("KeychainStore-ROOT")
 
-  class Directory(val path: Path) : TrustStoreType("Directory")
+  data class Directory(val path: Path) : TrustStoreType("Directory")
 }
