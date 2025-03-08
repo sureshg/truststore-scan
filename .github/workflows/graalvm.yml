@@ -34,15 +34,30 @@ env:
 
 jobs:
   native-build:
-    name: ${{ matrix.distribution }} ${{ matrix.java-version }} latest on ${{ matrix.os }}
+    name: ${{ matrix.build-type }} ${{ matrix.distribution }} ${{ matrix.java-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      max-parallel: 3
       matrix:
         java-version: [ '23' ]
         distribution: [ 'graalvm-community' ]
-        os: [ ubuntu-20.04, ubuntu-22.04-arm, macos-14, macos-13, windows-2019 ]
+        include:
+          # Libc builds
+          - os: ubuntu-20.04
+            build-type: libc
+          - os: ubuntu-22.04-arm
+            build-type: libc
+          - os: macos-14
+            build-type: libc
+          - os: macos-13
+            build-type: libc
+          - os: windows-2019
+            build-type: libc
+          # Musl builds
+          - os: ubuntu-20.04
+            build-type: musl
+          - os: ubuntu-24.04-arm
+            build-type: musl
 
     outputs:
       version: ${{ steps.native-build.outputs.version }}
@@ -63,58 +78,17 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: 'gradle'
           set-java-home: 'true'
+          native-image-musl: ${{ matrix.build-type == 'musl' }}
           native-image-job-reports: 'false'
 
       - name: 🏗️ Native Image Build & Test
         id: native-build
         run: |
-          ./gradlew nativeCompile -Pquick
-          ls -ltrh build/${{ github.event.repository.name }}*.tar.gz
-
-      - name: 📤 Upload ${{ matrix.os }} native image
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.native-build.outputs.native_image_name }}
-          path: |
-            build/${{ steps.native-build.outputs.native_image_name }}
-          if-no-files-found: error
-
-  native-build-musl:
-    name: Musl ${{ matrix.distribution }} ${{ matrix.java-version }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: [ '23' ]
-        distribution: [ 'graalvm-community' ]
-        os: [ ubuntu-20.04, ubuntu-22.04-arm ]
-
-    outputs:
-      version: ${{ steps.native-build.outputs.version }}
-      native_image_name: ${{ steps.native-build.outputs.native_image_name }}
-      native_image_dashboard: ${{ steps.native-build.outputs.native_image_dashboard }}
-
-    steps:
-      - name: 🛎️ Check out repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: ☕ Setup GraalVM CE Dev Build
-        uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: ${{ matrix.java-version }}
-          distribution: ${{ matrix.distribution }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: 'gradle'
-          set-java-home: 'true'
-          native-image-musl: 'true'
-          native-image-job-reports: 'false'
-
-      - name: 🏗️ Native Image Build & Test
-        id: native-build
-        run: |
-          ./gradlew nativeCompile -Pquick -Pmusl
+          if [ "${{ matrix.build-type }}" = "musl" ]; then
+            ./gradlew nativeCompile -Pquick -Pmusl
+          else
+            ./gradlew nativeCompile -Pquick
+          fi
           ls -ltrh build/${{ github.event.repository.name }}*.tar.gz
 
       - name: 📤 Upload ${{ matrix.os }} native image
@@ -127,7 +101,7 @@ jobs:
 
   release:
     name: 🚰 Release new version.
-    needs: [ native-build, native-build-musl ]
+    needs: [ native-build ]
     if: startsWith(github.ref, 'refs/tags/') && needs.native-build.result == 'success'
     runs-on: ubuntu-latest
 
