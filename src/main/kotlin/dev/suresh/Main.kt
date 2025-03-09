@@ -2,20 +2,18 @@ package dev.suresh
 
 import java.security.KeyStore
 import java.security.cert.X509Certificate
-import kotlin.io.path.Path
+import nl.altindag.ssl.util.CertificateUtils
 
 fun main(args: Array<String>) {
+  System.setProperty("slf4j.internal.verbosity", "WARN")
   println("TrustStore Scan: ${BuildConfig.version}")
 
   // /var/lib/certs/*.jks
   // -Djavax.net.ssl.trustStore=repleo.jks -Djavax.net.ssl.trustStorePassword=changeit
-  // CentOS/RHEL ->  /etc/pki/tls/certs
-  // Ubuntu -> /etc/ssl/certs (/usr/local/share/ca-certificates/)
 
-  println("All CA from /etc/ssl/certs")
   val path = args.firstOrNull() ?: "/etc/ssl/certs"
-  val keystore = TrustStore.systemTrustStore(TrustStoreType.Directory(Path(path)))
-  keystore.certEntries.forEach {
+  // KeyStoreUtils.getCertificates()
+  CertificateUtils.getSystemTrustedCertificates().forEach {
     println(
         """
         |Subject: ${it.subjectX500Principal}
@@ -24,7 +22,7 @@ fun main(args: Array<String>) {
         """
             .trimMargin())
   }
-
+  // TrustManagerUtils.getTrustManager<>()
   // println("Supported Truststores")
   // TrustStore.allTrustStores().forEach { println(it) }
 }

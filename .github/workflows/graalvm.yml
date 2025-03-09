@@ -34,7 +34,7 @@ env:
 
 jobs:
   native-build:
-    name: ${{ matrix.build-type }} ${{ matrix.distribution }} ${{ matrix.java-version }} on ${{ matrix.os }}
+    name: ${{ matrix.os }}-${{ matrix.build-type }} ${{ matrix.distribution }}:${{ matrix.java-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -43,6 +43,11 @@ jobs:
         distribution: [ 'graalvm-community' ]
         os: [ ubuntu-20.04, ubuntu-22.04-arm, macos-14, macos-13, windows-2022 ]
         build-type: [ libc, musl ]
+        include:
+          - build-type: musl
+            buildArgs: '-Pmusl'
+          - build-type: libc
+            buildArgs: ''
         exclude:
           # Exclude musl builds for these platforms
           - os: macos-14
@@ -79,11 +84,7 @@ jobs:
       - name: 🏗️ Native Image Build & Test
         id: native-build
         run: |
-          if [ "${{ matrix.build-type }}" = "musl" ]; then
-            ./gradlew nativeCompile -Pquick -Pmusl
-          else
-            ./gradlew nativeCompile -Pquick
-          fi
+          ./gradlew nativeCompile ${{ matrix.buildArgs }}
           ls -ltrh build/${{ github.event.repository.name }}*.tar.gz
 
       - name: 📤 Upload ${{ matrix.os }} native image
