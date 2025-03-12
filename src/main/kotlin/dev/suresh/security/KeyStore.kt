@@ -1,11 +1,13 @@
-package dev.suresh
+package dev.suresh.security
 
 import java.nio.file.Path
 import java.security.KeyStore
 import java.security.cert.PKIXParameters
 import java.security.cert.X509Certificate
+import kotlin.io.path.extension
 import kotlin.io.path.inputStream
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.walk
 
 /**
  * Converts the current KeyStore to a `PKCS#12` format [KeyStore] by copying all matching entries.
@@ -53,6 +55,10 @@ val KeyStore.certChainEntries
 fun KeyStore.keyEntries(password: CharArray) =
     aliases().toList().filter { isKeyEntry(it) }.mapNotNull { getKey(it, password) }
 
+/**
+ * Retrieves the trust anchors (trusted certificates) from the KeyStore. This is exactly same as
+ * [KeyStore.certEntries]
+ */
 val KeyStore.trustAnchors
   get() = PKIXParameters(this).trustAnchors.mapNotNull { it.trustedCert }
 
@@ -69,3 +75,24 @@ fun Path.toKeyStore(type: String = "JKS", storePasswd: CharArray? = null) =
     if (isRegularFile()) {
       inputStream().use { fis -> KeyStore.getInstance(type).apply { load(fis, storePasswd) } }
     } else null
+
+/**
+ * Attempts to create a [KeyStore] instance, first with password then without if an initial attempt
+ * fails.
+ *
+ * @param type The type of KeyStore to load. Defaults to "JKS".
+ * @param storePasswd Optional password for the KeyStore.
+ * @return The loaded [KeyStore] instance, or null if loading fails.
+ */
+fun Path.tryKeyStore(type: String = "JKS", storePasswd: CharArray? = null): KeyStore? =
+    runCatching { toKeyStore(type, storePasswd) }
+        .recoverCatching { toKeyStore(type, null) }
+        .getOrNull()
+
+fun Path.findKeyStore(storePasswd: CharArray? = null): Map<Path, KeyStore?> {
+  val keystoreExtns = setOf("jks", "p12", "pfx")
+  return walk()
+      .filter { it.isRegularFile() && it.extension.lowercase() in keystoreExtns }
+      .map { it to it.tryKeyStore(storePasswd = storePasswd) }
+      .toMap()
+}

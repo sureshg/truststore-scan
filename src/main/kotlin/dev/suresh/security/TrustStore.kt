@@ -1,4 +1,4 @@
-package dev.suresh
+package dev.suresh.security
 
 import com.github.marschall.directorykeystore.*
 import java.nio.file.Path

@@ -1,4 +1,4 @@
-package dev.suresh
+package dev.suresh.security
 
 import java.io.File
 import java.net.URI
