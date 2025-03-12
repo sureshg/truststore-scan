@@ -19,8 +19,6 @@ buildConfig {
   catalogVersions = project.versionCatalogMapOf()
 }
 
-graalvmNative { binaries.all { buildArgs.addAll("--enable-all-security-services") } }
-
 application {
   mainClass = libs.versions.app.mainclass
   applicationDefaultJvmArgs += jvmArguments()

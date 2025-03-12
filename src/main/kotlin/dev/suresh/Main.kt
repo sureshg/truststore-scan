@@ -1,47 +1,42 @@
 package dev.suresh
 
-import java.security.KeyStore
-import java.security.cert.X509Certificate
+import BuildConfig
+import java.security.Security
 import nl.altindag.ssl.util.CertificateUtils
 
 fun main(args: Array<String>) {
   System.setProperty("slf4j.internal.verbosity", "WARN")
+  // https://github.com/openjdk/jdk/blob/master/src/java.base/share/conf/security/java.security#L303-L311
+  Security.setProperty("keystore.type.compat", "true")
   println("TrustStore Scan: ${BuildConfig.version}")
 
   // /var/lib/certs/*.jks
   // -Djavax.net.ssl.trustStore=repleo.jks -Djavax.net.ssl.trustStorePassword=changeit
 
-  val path = args.firstOrNull() ?: "/etc/ssl/certs"
-  // KeyStoreUtils.getCertificates()
-  CertificateUtils.getSystemTrustedCertificates().forEach {
-    println(
-        """
-        |Subject: ${it.subjectX500Principal}
-        |Serial Number: ${it.serialNumber}
-        |--------------------------------
-        """
-            .trimMargin())
-  }
-  // TrustManagerUtils.getTrustManager<>()
-  // println("Supported Truststores")
-  // TrustStore.allTrustStores().forEach { println(it) }
+  val filter = args.firstOrNull()
+  // KeyStoreUtils.loadSystemKeyStores()
+  // KeyManagerUtils.createKeyManager()
+  // TrustManagerUtils.createTrustManager()
+
+  println("####### TrustStore Providers ######")
+  TrustStore.providers().forEach { println(it) }
+  println("####### System TrustStore ######")
+  CertificateUtils.getSystemTrustedCertificates()
+      ?.filter {
+        filter == null || it.subjectX500Principal.toString().contains(filter, ignoreCase = true)
+      }
+      ?.forEach { println(it.subjectX500Principal) }
+
+  println("####### Java Home ######")
+  println(Jdk.javaHome())
+  println("####### Java TrustStore ######")
+  Jdk.jdkCaCert
+      ?.toKeyStore()
+      ?.certEntries
+      ?.filter {
+        filter == null || it.subjectX500Principal.toString().contains(filter, ignoreCase = true)
+      }
+      ?.onEach { println(it.subjectX500Principal) }
+
+  // ProcessHandle.allProcesses().forEach { println(it.info().commandLine()) }
 }
-
-val KeyStore.certEntries
-  get() =
-      aliases()
-          .toList()
-          .filter { isCertificateEntry(it) }
-          .mapNotNull { getCertificate(it) }
-          .filterIsInstance<X509Certificate>()
-
-val KeyStore.certChainEntries
-  get() =
-      aliases()
-          .toList()
-          .filter { isCertificateEntry(it) }
-          .flatMap { getCertificateChain(it)?.toList().orEmpty() }
-          .filterIsInstance<X509Certificate>()
-
-fun KeyStore.keyEntries(password: CharArray) =
-    aliases().toList().filter { isKeyEntry(it) }.mapNotNull { getKey(it, password) }
