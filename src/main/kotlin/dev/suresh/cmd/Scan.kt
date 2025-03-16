@@ -21,11 +21,13 @@ class Scan : CliktCommand() {
     println("TrustStore Scan: ${BuildConfig.version}")
 
     println("####### System TrustStore ######")
-    CertificateUtils.getSystemTrustedCertificates()
-        ?.filter {
+    runCatching { CertificateUtils.getSystemTrustedCertificates() }
+        .onFailure { println("Warning: Unable to load system certificates: ${it.message}") }
+        .getOrElse { emptyList() }
+        .filter {
           ca == null || it.subjectX500Principal.toString().contains(ca.orEmpty(), ignoreCase = true)
         }
-        ?.forEachIndexed { idx, cert -> println("$idx : ${cert.subjectX500Principal.name}") }
+        .forEachIndexed { idx, cert -> println("$idx : ${cert.subjectX500Principal.name}") }
 
     println("####### Java TrustStore ######")
     Jdk.jdkCaCert?.let {
