@@ -39,14 +39,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [ '24' ]
+        java-version: [ 'dev' ]
         distribution: [ 'graalvm-community' ]
         os: [
-          ubuntu-20.04,      # Linux on amd64
-          ubuntu-22.04-arm,  # Linux on aarch64
-          macos-14,          # macOS on aarch64
-          macos-13,          # macOS on amd64
-          windows-2022       # Windows on amd64
+          ubuntu-20.04,      # Linux X64
+          ubuntu-22.04-arm,  # Linux Arm64
+          macos-14,          # macOS Arm64
+          macos-13,          # macOS Intel
+          windows-2022,      # Windows X64
+          windows-11-arm     # Windows Arm64
         ]
         build-type: [ libc, musl ]
         include:
@@ -64,6 +65,7 @@ jobs:
             build-type: musl
           - os: ubuntu-22.04-arm
             build-type: musl
+          - os: windows-11-arm
 
     outputs:
       version: ${{ steps.native-build.outputs.version }}

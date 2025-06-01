@@ -21,7 +21,10 @@ buildConfig {
 
 application {
   mainClass = libs.versions.app.mainclass
-  applicationDefaultJvmArgs += jvmArguments()
+  applicationDefaultJvmArgs += runJvmArgs
 }
 
-dependencies { implementation(libs.slf4j.simple) }
+dependencies {
+  implementation(libs.slf4j.simple)
+  implementation(libs.bundles.ajalt)
+}
