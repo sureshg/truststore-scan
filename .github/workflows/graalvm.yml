@@ -57,7 +57,7 @@ jobs:
             buildArgs: ''
         exclude:
           # Exclude musl builds for these platforms
-          - os: macos-14
+          - os: macos-latest
             build-type: musl
           - os: macos-13
             build-type: musl
