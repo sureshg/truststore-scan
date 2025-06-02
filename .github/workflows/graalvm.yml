@@ -42,9 +42,9 @@ jobs:
         java-version: [ 'dev' ]
         distribution: [ 'graalvm-community' ]
         os: [
-          ubuntu-20.04,      # Linux X64
+          ubuntu-22.04,      # Linux X64
           ubuntu-22.04-arm,  # Linux Arm64
-          macos-14,          # macOS Arm64
+          macos-latest,      # macOS Arm64
           macos-13,          # macOS Intel
           windows-2022,      # Windows X64
           windows-11-arm     # Windows Arm64

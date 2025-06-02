@@ -39,7 +39,7 @@ kotlinx-benchmark              = "0.4.14"
 kotlinx-fuzz                   = "0.2.2"
 kotlinx-metadata               = "0.9.0"
 kotlinx-reflect-lite           = "1.2.0-RC"
-kotlin-wrappers                = "2025.5.9"
+kotlin-wrappers                = "2025.5.10"
 kotlin-redacted                = "1.14.0-alpha01"
 kotlin-serviceloader           = "0.0.16"
 kotlinx-multik                 = "0.2.3"
@@ -121,7 +121,7 @@ caffeine-coroutines            = "2.0.1"
 kotlin-codepoints              = "0.10.0"
 kotlin-logging                 = "7.0.7"
 kotlin-bignum                  = "0.3.10"
-kotlin-diff                    = "1.1.0-rc.1"
+kotlin-diff                    = "1.1.0"
 kotlin-retry                   = "2.0.1"
 kotlinx-jsonpath               = "3.0.2"
 kotlin-cryptography            = "0.4.0"
@@ -199,7 +199,6 @@ quickjs4j                      = "0.0.4"
 log4k                          = "0.50.0"
 rwmutex                        = "1.0.0"
 bluesky-ozone                  = "0.3.3"
-helidon                        = "4.2.2"
 
 # Compose
 jetbrains-compose              = "1.8.1"
@@ -262,6 +261,7 @@ animalsniffer                  = "2.0.1"
 badass-runtime                 = "1.13.1-patch-1"
 badass-jlink                   = "3.1.0"
 jlink-jib                      = "0.4.1"
+jextract                       = "0.5.0"
 maven-plugin-api               = "4.0.0-rc-3"
 maven-plugin-annotations       = "3.15.1"
 gradlex-maven-plugin           = "1.0.3"
@@ -678,13 +678,6 @@ ldaptive                             = { module = "org.ldaptive:ldaptive"       
 maven-plugin-api                     = { module = "org.apache.maven:maven-plugin-api"                                       , version.ref = "maven-plugin-api" }
 maven-plugin-annotations             = { module = "rg.apache.maven.plugin-tools:maven-plugin-annotations"                   , version.ref = "maven-plugin-annotations" }
 
-helidon-bom                          = { module = "io.helidon:helidon-bom"                                                  , version.ref = "helidon"}
-helidon-webserver                    = { module = "io.helidon.webserver:helidon-webserver"                                  , version.ref = "helidon"}
-helidon-service                      = { module = "io.helidon.webserver:helidon-webserver-service-common"                   , version.ref = "helidon"}
-helidon-static                       = { module = "io.helidon.webserver:helidon-webserver-static-content"                   , version.ref = "helidon"}
-helidon-webclient                    = { module = "io.helidon.webclient:helidon-webclient"                                  , version.ref = "helidon"}
-helidon-config-yaml                  = { module = "io.helidon.config:helidon-config-yaml"                                   , version.ref = "helidon"}
-
 [bundles]
 ajalt                                = ["ajalt-colormath",
                                         "ajalt-mordant",
@@ -770,6 +763,7 @@ kmbed-plugin                         = { id = "io.karma.kmbed.kmbed-gradle-plugi
 badass-jlink                         = { id = "com.dua3.gradle.jlink"                                          , version.ref = "badass-jlink" }
 badass-runtime                       = { id = "com.dua3.gradle.runtime"                                        , version.ref = "badass-runtime" }
 jlink-jib                            = { id = "com.ryandens.jlink-jib"                                         , version.ref = "jlink-jib" }
+jextract                             = { id = "de.infolektuell.jextract"                                       , version.ref = "jextract" }
 gradlex-maven-plugin                 = { id = "org.gradlex.maven-plugin-development"                           , version.ref = "gradlex-maven-plugin" }
 typesafe-conventions                 = { id = "dev.panuszewski.typesafe-conventions"                           , version.ref = "typesafe-conventions" }
 wasm2class                           = { id = "at.released.wasm2class.plugin"                                  , version.ref = "wasm2class" }
